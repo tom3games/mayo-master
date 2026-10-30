@@ -105,7 +105,8 @@ const TXT = {
   ja: {
     title: 'お好み焼きマヨ職人', titleA: 'お好み焼き', titleB: 'マヨ職人', sub: 'お客さんの注文どおりに、マヨで絵を描け。',
     host: '店長', hostLine: '今日からマヨ担当や。注文の下絵は一瞬しか見せへんで。よう覚えて描くんやぞ。',
-    start: '屋台に立つ', how: '遊び方', back: 'もどる', again: 'もう一回焼く', save: '結果画像を保存', share: '結果画像をシェア', toTitle: 'タイトル',
+    start: '屋台に立つ', how: '遊び方', back: 'もどる', again: 'もう一回焼く', save: '画像を保存', share: '画像をシェア', postX: 'Xでポスト',
+    xText: 'お好み焼きマヨ職人で{dan}「{title}」でした（平均{avg}点） #お好み焼きマヨ職人', toTitle: 'タイトル',
     howTitle: '遊び方',
     how1: '注文の下絵が一瞬だけ出て消える。形を覚える',
     how2T: '指でなぞってマヨを絞る。お好み焼きからはみ出さない', how2M: 'マウスでドラッグしてマヨを絞る。お好み焼きからはみ出さない',
@@ -124,7 +125,8 @@ const TXT = {
   en: {
     title: 'MAYO MASTER', titleA: 'Okonomiyaki', titleB: 'MAYO MASTER', sub: 'Draw what the customer orders. In mayonnaise.',
     host: 'Boss', hostLine: "You're on mayo duty. The sketch only flashes for a moment, so remember it and draw!",
-    start: 'Start Cooking', how: 'How to Play', back: 'Back', again: 'Cook Again', save: 'Save Result Image', share: 'Share Result Image', toTitle: 'Title',
+    start: 'Start Cooking', how: 'How to Play', back: 'Back', again: 'Cook Again', save: 'Save Image', share: 'Share Image', postX: 'Post on X',
+    xText: 'I ranked {dan} in MAYO MASTER: "{title}" (avg {avg} pts) #MayoMaster', toTitle: 'Title',
     howTitle: 'How to Play',
     how1: 'The sketch flashes for a moment, then vanishes. Remember it',
     how2T: 'Trace with your finger to squeeze mayo. Stay on the pancake', how2M: 'Drag the mouse to squeeze mayo. Stay on the pancake',

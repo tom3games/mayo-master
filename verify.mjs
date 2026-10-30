@@ -58,6 +58,34 @@ const variance3d = p => p.evaluate(() => {
   let s = 0, s2 = 0, n = 0; for (let i = 0; i < d.length; i += 4 * 3) { const v = d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11; s += v; s2 += v * v; n++ }
   return Math.round(s2 / n - (s / n) ** 2)
 })
+// ---- Xでポスト の検査道具
+// window.open をスタブして押す → 開いたURLを分解して確かめる
+const xStub = async (pg, ns, pub, tag) => {
+  await pg.evaluate(() => { window.__opened = []; if (!window.__origOpen) window.__origOpen = window.open; window.open = (...a) => { window.__opened.push(a); return null } })
+  const vis = await pg.evaluate(() => { const b = document.querySelector('#bX'), r = b.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), inView: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth, clip: b.scrollWidth > b.clientWidth + 1, bg: getComputedStyle(b).backgroundColor, label: b.textContent.trim(), svg: !!b.querySelector('svg path') } })
+  await pg.click('#bX')
+  const r = await pg.evaluate(ns => ({ opened: window.__opened, text: window[ns].xText(), url: window[ns].xUrl() }), ns)
+  await pg.evaluate(() => { window.open = window.__origOpen })
+  expect(r.opened.length === 1, r)
+  const [u, target, feat] = r.opened[0], q = new URL(u)
+  const text = q.searchParams.get('text'), url = q.searchParams.get('url')
+  expect(u.startsWith('https://x.com/intent/post?') && target === '_blank' && /noopener/.test(feat || '') && u === r.url, r.opened[0])
+  expect(text === r.text && text.includes(tag) && (text.match(/#/g) || []).length === 1 && url === pub && !/https?:\/\//.test(text), { text, url })
+  expect(vis.inView && !vis.clip && vis.svg && vis.bg === 'rgb(0, 0, 0)' && vis.h >= 36, vis)
+  return { label: vis.label, text }
+}
+// 本物のクリックで新しいタブ（popup）が開く。x.com へは出ずにダミーを返す
+const xPopup = async (pg, pub) => {
+  await pg.context().route(/^https:\/\/x\.com\//, r => r.fulfill({ status: 200, contentType: 'text/html', body: '<title>x</title>ok' }))
+  const [pop] = await Promise.all([pg.waitForEvent('popup', { timeout: 8000 }), pg.click('#bX')])
+  await pop.waitForLoadState().catch(() => {})
+  const u = new URL(pop.url()); await pop.close()
+  expect(u.origin + u.pathname === 'https://x.com/intent/post' && u.searchParams.get('url') === pub && u.searchParams.get('text'), pop.url())
+  return u.searchParams.get('text')
+}
+// 結果画面のボタンの文字が切れていない
+const btnClip = pg => pg.evaluate(() => [...document.querySelectorAll('#vResult button')].filter(b => b.offsetParent && b.scrollWidth > b.clientWidth + 1).map(b => b.id + ':' + b.scrollWidth + '>' + b.clientWidth))
+const PUB = 'https://tom3games.github.io/mayo-master/'
 const SIZES = [[360, 640, 'small'], [390, 844, 'phone'], [844, 390, 'land'], [667, 375, 'land-se'], [768, 1024, 'tab'], [1440, 900, 'pc']]
 // 画面を止めて、描く番まで進める
 const toPhase = (p, ph) => p.evaluate(ph => { mm.dbg.pause(true); let k = 0; while (mm.S.ph !== ph && k++ < 60 * 30) mm.dbg.step(1); mm.dbg.render(); return mm.S.ph }, ph)
@@ -134,6 +162,20 @@ await t('結果画像（1080x1350・4皿入り）を保存できる', async () =
   const path = `${ROOT}/shots/card.png`; await d.saveAs(path); const size = statSync(path).size
   const dim = await q.evaluate(async () => { const c = await mm.drawCard(); return [c.width, c.height] })
   expect(d.suggestedFilename() === 'mayo-master.png' && size > 80000 && dim[0] === 1080 && dim[1] === 1350, JSON.stringify({ f: d.suggestedFilename(), size, dim })); return { size }
+})
+await t('Xでポスト: 日本語（ボタンが見える・x.com/intent/post・本文に段位と称号とハッシュタグ・url=公開URL）', async () => {
+  const r = await xStub(q, 'mm', PUB, '#お好み焼きマヨ職人')
+  const n = await q.evaluate(() => [document.querySelector('#rankN').textContent, document.querySelector('#rankT').textContent.replace(/[「」]/g, '')])
+  expect(r.label === 'Xでポスト' && r.text.includes(n[0]) && r.text.includes(n[1]), { r, n }); return r.text
+})
+await t('Xでポスト: 本物のクリックで新しいタブが開く', async () => { const tx = await xPopup(q, PUB); expect(/#お好み焼きマヨ職人/.test(tx), tx); return tx.length })
+await t('Xでポスト: 英語', async () => {
+  await q.click('#bLang')
+  const r = await xStub(q, 'mm', PUB, '#MayoMaster')
+  const n = await q.evaluate(() => document.querySelector('#rankN').textContent)
+  await q.screenshot({ path: ROOT + '/shots/result-en-x.png' })
+  await q.click('#bLang')
+  expect(r.label === 'Post on X' && r.text.includes(n) && !/[ぁ-んァ-ン一-龥]/.test(r.text), { r, n }); return r.text
 })
 await t('もう一回ですぐ遊べる', async () => { await q.click('#bAgain'); const r = await q.evaluate(() => ({ v: mm.S.view, di: mm.S.di, ph: mm.S.ph, ink: mm.S.ink.length, res: mm.S.results.length })); expect(r.v === 'play' && r.di === 0 && r.ink === 0 && r.res === 0, JSON.stringify(r)); return r })
 await t('通しでエラーなし', async () => { expect(q.errs.length === 0, q.errs.join('|')) })
@@ -228,6 +270,9 @@ for (const [w, h, name] of SIZES) {
   await toPhase(v, 'react'); await v.evaluate(() => mm.dbg.step(40)); views.react = await fit(v); await v.evaluate(() => mm.dbg.render()); await v.screenshot({ path: `${ROOT}/shots/fit-${name}-react.png` })
   await v.evaluate(() => { mm.dbg.quiet(true); let k = 0; while (mm.S.view !== 'result' && k++ < 60 * 120) mm.dbg.step(1); mm.dbg.step(60 * 5) }); await v.waitForTimeout(700)
   views.result = await fit(v); await v.screenshot({ path: `${ROOT}/shots/fit-${name}-result.png` })
+  const clipJa = await btnClip(v)
+  await v.click('#bLang'); await v.waitForTimeout(200); views.resultEn = await fit(v); const clipEn = await btnClip(v); await v.screenshot({ path: `${ROOT}/shots/fit-${name}-result-en.png` }); await v.click('#bLang'); await v.waitForTimeout(400)
+  await t(`${name}: 結果画面のボタンの文字が切れない（日英）`, async () => { expect(!clipJa.length && !clipEn.length, [clipJa, clipEn]) })
   for (const [vn, r] of Object.entries(views)) await t(`一画面に収まる ${name} ${w}x${h} ${vn}`, async () => { expect(!r.over.length, JSON.stringify(r)) })
   await t(`${name}: 吹き出し・帯がお題にかぶらない`, async () => { expect(!c1.length && !c2.length, JSON.stringify([c1, c2])) })
   await t(`${name}: 結果の皿が見える大きさ`, async () => { const ts = await v.evaluate(() => document.querySelector('#grid canvas').getBoundingClientRect().width); expect(ts >= 70, ts); return Math.round(ts) })

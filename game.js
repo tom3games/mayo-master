@@ -740,6 +740,10 @@ async function saveImage() {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mayo-master.png'; document.body.appendChild(a); a.click(); a.remove()
   setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast(T('saved')); return 'download'
 }
+// Xでポスト: クリックの同期処理内で開く（ポップアップブロック回避）。URL は url パラメータで渡す
+const PUB_URL = 'https://tom3games.github.io/mayo-master/'
+function xText() { const R = S.result; if (!R) return ''; return fmt(T('xText'), { dan: L(R.rank), title: S.lang === 'ja' ? R.rank.tja : R.rank.ten, avg: R.avg }) }
+function xUrl() { return 'https://x.com/intent/post?text=' + encodeURIComponent(xText()) + '&url=' + encodeURIComponent(PUB_URL) }
 function toast(s) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = s; document.body.appendChild(d); setTimeout(() => d.remove(), 1600) }
 
 // ---------- カメラ（どの画面の形でもお好み焼きが大きく収まる）
@@ -814,6 +818,7 @@ function boot() {
   on('#bHowBack', () => { Snd.sfx('tap'); go('title') })
   on('#bAgain', () => { Snd.sfx('tap'); S.rolled = S.stamped = false; startGame() })
   on('#bSave', () => saveImage())
+  on('#bX', () => { window.open(xUrl(), '_blank', 'noopener'); Snd.sfx('tap') })
   on('#bTitle', () => { Snd.sfx('tap'); S.rolled = S.stamped = false; Snd.ambient(false); go('title') })
   on('#bDone', () => { if (S.ph === 'draw' && S.mode === 'play') S.doneReq = true })
   on('#bLang', () => { S.lang = S.lang === 'ja' ? 'en' : 'ja'; try { localStorage.setItem('mm.lang', S.lang) } catch (e) {} applyLang() })
@@ -833,7 +838,7 @@ function boot() {
 
 // 検証用の窓口
 window.mm = {
-  S, ORD, RANKS, startGame, go, scoreDish, drawCard, saveImage, fitCamera, skipReveal, custs, nib, inp, uvToScreen, screenToUV, Snd, cardBlob,
+  S, ORD, RANKS, startGame, go, scoreDish, drawCard, saveImage, xText, xUrl, PUB_URL, fitCamera, skipReveal, custs, nib, inp, uvToScreen, screenToUV, Snd, cardBlob,
   setLang: l => { S.lang = l; applyLang() },
   dbg: {
     pause: v => { paused = v; acc = 0; lastT = performance.now() },

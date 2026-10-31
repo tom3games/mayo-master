@@ -169,6 +169,17 @@ await t('Xでポスト: 日本語（ボタンが見える・x.com/intent/post・
   expect(r.label === 'Xでポスト' && r.text.includes(n[0]) && r.text.includes(n[1]), { r, n }); return r.text
 })
 await t('Xでポスト: 本物のクリックで新しいタブが開く', async () => { const tx = await xPopup(q, PUB); expect(/#お好み焼きマヨ職人/.test(tx), tx); return tx.length })
+await t('結果画面で言語を切り替えると皿の一言・皿の名前・段位・称号まで全部切り替わる（日→英→日）', async () => {
+  const grab = () => q.evaluate(() => ({ cm: [...document.querySelectorAll('#grid .cm')].map(e => e.textContent), lab: [...document.querySelectorAll('#grid .lab')].map(e => e.textContent), want: mm.S.result.dishes.map(d => d.lineO), all: [...document.querySelectorAll('#vResult *')].filter(e => e.offsetParent && !e.children.length).map(e => e.textContent.trim()).filter(Boolean).join(' | ') }))
+  const ja = await grab(); await q.click('#bLang'); await q.waitForTimeout(150); const en = await grab()
+  await q.screenshot({ path: ROOT + '/shots/result-en-switched.png' })
+  await q.click('#bLang'); await q.waitForTimeout(150); const back = await grab()
+  const JP = /[ぁ-んァ-ン一-龥「」]/
+  expect(ja.cm.every((c, i) => c === ja.want[i].ja) && ja.cm.every(c => JP.test(c)), ja)
+  expect(en.cm.every((c, i) => c === en.want[i].en) && !JP.test(en.all), en)
+  expect(back.cm.join() === ja.cm.join() && back.lab.join() === ja.lab.join(), back)
+  return en.cm
+})
 await t('Xでポスト: 英語', async () => {
   await q.click('#bLang')
   const r = await xStub(q, 'mm', PUB, '#MayoMaster')

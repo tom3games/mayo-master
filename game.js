@@ -413,17 +413,20 @@ function endDraw(why) {
 }
 function react() {
   const r = S.res, d = S.dish, c = cur.id, pick = a => a[(S.di + S.seed) % a.length]
-  let mood = r.score >= 78 ? 'wow' : r.score >= 52 ? 'ok' : r.score >= 28 ? 'huh' : 'mad', line
-  if (r.score === 0 && S.ink.length < 6) { mood = 'huh'; line = L(LINES.none) }
-  else if (mood === 'wow') line = c === 'tencho' ? L(LINES.wowBoss) : pick(L(LINES.wow))
-  else if (mood === 'ok') line = S.blobs >= 2 ? L(LINES.blob) : pick(L(LINES.ok))
-  else if (mood === 'huh') line = S.blobs >= 3 ? L(LINES.blob) : L(S.ord.huh)
-  else line = c === 'tencho' ? L(LINES.madBoss) : c === 'kowa' ? L(LINES.kowaMad) : pick(L(LINES.mad))
+  // 一言は日英の組で持つ（結果画面で言語を切り替えた時に追従させるため）。pick は配列の同じ位置を選ぶ
+  const pk = o => ({ ja: pick(o.ja), en: pick(o.en) })
+  let mood = r.score >= 78 ? 'wow' : r.score >= 52 ? 'ok' : r.score >= 28 ? 'huh' : 'mad', lineO
+  if (r.score === 0 && S.ink.length < 6) { mood = 'huh'; lineO = LINES.none }
+  else if (mood === 'wow') lineO = c === 'tencho' ? LINES.wowBoss : pk(LINES.wow)
+  else if (mood === 'ok') lineO = S.blobs >= 2 ? LINES.blob : pk(LINES.ok)
+  else if (mood === 'huh') lineO = S.blobs >= 3 ? LINES.blob : S.ord.huh
+  else lineO = c === 'tencho' ? LINES.madBoss : c === 'kowa' ? LINES.kowaMad : pk(LINES.mad)
+  const line = L(lineO)
   S.mood = mood; S.line = line
   setFace(cur, mood); cur.st = 'react'; cur.t = 0; cur.react = mood
   popOrder(line, mood)
   if (!S.quiet) { Snd.voice(CUSTOMERS[c].voice, mood); Snd.sfx(mood === 'wow' ? 'cheer' : mood === 'ok' ? 'ding' : mood === 'huh' ? 'cricket' : 'boo', mood === 'ok' ? 8 : 1) }
-  S.results.push({ ...r, id: d.id, cust: c, mood, line, snap: snapDish() })
+  S.results.push({ ...r, id: d.id, cust: c, mood, line, lineO, snap: snapDish() })
   hudPips()
   setPhase('react')
 }
@@ -653,12 +656,14 @@ function stampSvg(r) {
   const fs = S.lang === 'ja' ? (txt.length > 2 ? 30 : 38) : 18
   return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="${r.tier === 'black' ? '#fff6d8' : 'rgba(255,246,216,.92)'}" stroke="${col}" stroke-width="7"/><circle cx="50" cy="50" r="36" fill="none" stroke="${col}" stroke-width="2.5"/><text x="50" y="${S.lang === 'ja' ? 63 : 57}" text-anchor="middle" font-family="'Zen Maru Gothic','Hiragino Sans',sans-serif" font-weight="900" font-size="${fs}" fill="${col === '#f5c443' ? '#b8860b' : col}">${txt}</text></svg>`
 }
+const dLine = d => d.lineO ? L(d.lineO) : d.line
+const quoteT = s => S.lang === 'ja' ? '「' + s + '」' : '“' + s + '”'
 function buildResult() {
   const R = S.result
-  $('#grid').innerHTML = R.dishes.map((d, i) => `<div class="tile" data-i="${i}"><div class="lab">${L(ORD[d.id].name)}</div><div class="sc">${fmt(T('pts'), { n: d.score })}</div><div class="cm">${d.line}</div></div>`).join('')
+  $('#grid').innerHTML = R.dishes.map((d, i) => `<div class="tile" data-i="${i}"><div class="lab">${L(ORD[d.id].name)}</div><div class="sc">${fmt(T('pts'), { n: d.score })}</div><div class="cm">${dLine(d)}</div></div>`).join('')
   $$('#grid .tile').forEach((el, i) => el.prepend(R.dishes[i].snap))
   $('#rank').className = 'rank tier-' + R.rank.tier; $('#stamp').innerHTML = stampSvg(R.rank)
-  $('#rankN').textContent = L(R.rank); $('#rankT').textContent = '「' + (S.lang === 'ja' ? R.rank.tja : R.rank.ten) + '」'; $('#rankAvg').textContent = fmt(T('resAvg'), { n: R.avg })
+  $('#rankN').textContent = L(R.rank); $('#rankT').textContent = quoteT(S.lang === 'ja' ? R.rank.tja : R.rank.ten); $('#rankAvg').textContent = fmt(T('resAvg'), { n: R.avg })
   $('#skip').hidden = false; $('.rBtns').style.visibility = 'hidden'
   $('#saveTxt').textContent = canShareFiles() ? T('share') : T('save')
 }
@@ -686,7 +691,7 @@ function skipReveal() { if (S.view !== 'result' || S.stamped) return; S.rt = 4.1
 // 結果を1枚の画像に（1080x1350・描いた4皿が全部入る）
 async function drawCard() {
   const R = S.result, ja = S.lang === 'ja'
-  const txt = [T('titleA'), T('resRank'), L(R.rank), R.rank.tja, R.rank.ten, T('resAvg'), ...R.dishes.map(d => d.line + L(ORD[d.id].name))].join('')
+  const txt = [T('titleA'), T('resRank'), L(R.rank), R.rank.tja, R.rank.ten, T('resAvg'), ...R.dishes.map(d => dLine(d) + L(ORD[d.id].name))].join('')
   try { await Promise.all([document.fonts.load(`40px 'Dela Gothic One'`, txt), document.fonts.load(`900 30px 'Zen Maru Gothic'`, txt), document.fonts.load(`700 30px 'Zen Maru Gothic'`, txt)]) } catch (e) {}
   const c = document.createElement('canvas'); c.width = 1080; c.height = 1350; const x = c.getContext('2d')
   const DISP = `'Dela Gothic One','Zen Maru Gothic','Hiragino Sans',sans-serif`, BODY = `'Zen Maru Gothic','Hiragino Sans',sans-serif`
@@ -705,7 +710,7 @@ async function drawCard() {
   x.fillStyle = col === '#f5c443' ? '#b8860b' : col; x.font = `900 ${ja ? 84 : 40}px ${BODY}`; x.textBaseline = 'middle'; fitText(x, L(R.rank), 0, 4, 160); x.restore()
   x.textAlign = 'left'; x.textBaseline = 'alphabetic'; x.fillStyle = '#fff6d8'; x.font = `900 34px ${BODY}`; x.fillText(T('resRank'), 400, 300)
   x.font = `900 92px ${BODY}`; x.fillStyle = R.rank.tier === 'gold' ? '#f5c443' : '#fff'; fitText(x, L(R.rank), 400, 392, 620)
-  x.font = `900 38px ${BODY}`; x.fillStyle = '#f5c443'; fitText(x, '「' + (ja ? R.rank.tja : R.rank.ten) + '」', 400, 450, 640)
+  x.font = `900 38px ${BODY}`; x.fillStyle = '#f5c443'; fitText(x, quoteT(ja ? R.rank.tja : R.rank.ten), 400, 450, 640)
   x.font = `700 28px ${BODY}`; x.fillStyle = '#d8d0e8'; x.fillText(fmt(T('resAvg'), { n: R.avg }), 404, 494)
   // 4皿
   const gx = [80, 600], gy = [535, 920]
@@ -720,7 +725,7 @@ async function drawCard() {
     x.strokeText(String(d.score), 0, 0); x.fillText(String(d.score), 0, 0); x.font = `900 22px ${BODY}`; x.lineWidth = 5; x.strokeText(ja ? '点' : 'pts', 0, 30); x.fillText(ja ? '点' : 'pts', 0, 30); x.restore()
     // お客さんの一言
     const fy = Y + 322; x.save(); const im = faceImg[d.cust + d.mood]; if (im) x.drawImage(im, X + 4, fy - 4, 56, 56)
-    x.fillStyle = '#fff6d8'; roundRect(x, X + 70, fy, 330, 50, 14); x.fill(); x.fillStyle = '#24170f'; x.font = `900 22px ${BODY}`; x.textAlign = 'left'; fitText(x, d.line, X + 84, fy + 33, 304); x.restore()
+    x.fillStyle = '#fff6d8'; roundRect(x, X + 70, fy, 330, 50, 14); x.fill(); x.fillStyle = '#24170f'; x.font = `900 22px ${BODY}`; x.textAlign = 'left'; fitText(x, dLine(d), X + 84, fy + 33, 304); x.restore()
   })
   x.textAlign = 'right'; x.fillStyle = 'rgba(255,246,216,.75)'; x.font = `900 24px ${BODY}`; x.fillText(T('cardFoot'), 1040, 1330)
   return c

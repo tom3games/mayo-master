@@ -1,4 +1,5 @@
 // 台本のボットで結果の分布を測る。node sim.mjs
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 const ROOT = import.meta.dirname

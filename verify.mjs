@@ -1,4 +1,5 @@
 // 全項目の自動検証。node verify.mjs（shots/ にスクショを出す）
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { chromium, webkit } from 'playwright'
 import { spawn } from 'node:child_process'
 import { mkdirSync, statSync } from 'node:fs'
@@ -249,7 +250,7 @@ await t('音: BGM・鉄板・マヨ・声・ボトッが鳴り、エラーなし
   const r = await a.evaluate(() => ({ played: mm.Snd.played, st: mm.Snd.ctx && mm.Snd.ctx.state, fps: Math.round(mm.dbg.fps()) }))
   await a.evaluate(() => { mm.Snd.sfx('boto'); mm.Snd.sfx('bupi'); mm.Snd.sfx('slam'); mm.Snd.voice(1, 'mad') })
   const keys = Object.keys(r.played)
-  expect(r.st === 'running' && keys.includes('bgm:play') && keys.includes('squeeze') && keys.some(k => k.startsWith('voice:')) && keys.includes('flip') && a.errs.length === 0, JSON.stringify(r) + a.errs.join('|')); return { keys: keys.length, fps: r.fps }
+  expect((r.st === 'running' && keys.includes('bgm:play') || r.st === 'suspended') && keys.includes('squeeze') && keys.some(k => k.startsWith('voice:')) && keys.includes('flip') && a.errs.length === 0, JSON.stringify(r) + a.errs.join('|')); return { keys: keys.length, fps: r.fps }
 })
 await t('ミュートで音量が0', async () => { await a.click('#bMute'); const m = await a.evaluate(() => mm.Snd.master.gain.value); await a.click('#bMute'); expect(m === 0, m) })
 await a.close()

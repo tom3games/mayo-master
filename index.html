@@ -35,7 +35,7 @@ button{font-family:inherit;color:inherit;font-size:inherit}
 #world{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
 #fx{position:fixed;inset:0;z-index:15;pointer-events:none;overflow:hidden}
 
-.view{position:fixed;inset:0;z-index:10;height:100svh;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:max(58px,calc(env(safe-area-inset-top) + 52px)) 16px max(16px,calc(env(safe-area-inset-bottom) + 12px));gap:12px}
+.view{position:fixed;inset:0;z-index:10;height:100svh;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:max(58px,calc(env(safe-area-inset-top) + 52px)) 16px max(16px,calc(calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)) + 12px));gap:12px}
 .wrap{width:min(520px,100%);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,14px);min-height:0;max-height:100%}
 .view:not([hidden]) .wrap{animation:enter .35s cubic-bezier(.2,.8,.2,1) both}
 @keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -80,7 +80,7 @@ button{font-family:inherit;color:inherit;font-size:inherit}
 .tBottom{width:min(520px,100%);display:flex;flex-direction:column;gap:10px}
 
 @media (min-aspect-ratio:1/1) and (max-height:560px){
-  #vTitle{align-items:flex-end;justify-content:center;gap:10px;padding:max(56px,calc(env(safe-area-inset-top) + 50px)) max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) 16px}
+  #vTitle{align-items:flex-end;justify-content:center;gap:10px;padding:max(56px,calc(env(safe-area-inset-top) + 50px)) max(16px,env(safe-area-inset-right)) max(12px,calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px))) 16px}
   #vTitle .tTop,#vTitle .tBottom{width:min(420px,50vw)}
   .noren .b{font-size:min(4.8vw,11vh,42px)}
   .noren .flap{padding:8px 8px 10px}
@@ -126,14 +126,14 @@ button{font-family:inherit;color:inherit;font-size:inherit}
 .order.big{font-family:var(--disp);font-weight:400;font-size:20px}
 .order .fc{float:left;width:38px;height:38px;border-radius:50%;margin:0 8px 2px 0;background:#2a2140 center/cover no-repeat}
 @keyframes shake{0%{margin-left:-2px}50%{margin-left:2px}100%{margin-left:-2px}}
-.banner{position:absolute;left:0;right:0;bottom:max(10px,calc(env(safe-area-inset-bottom) + 6px));text-align:center;pointer-events:none;z-index:6}
+.banner{position:absolute;left:0;right:0;bottom:max(10px,calc(calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)) + 6px));text-align:center;pointer-events:none;z-index:6}
 .banner b{display:inline-block;font-family:var(--disp);font-weight:400;font-size:clamp(30px,9vw,54px);color:#fff;-webkit-text-stroke:2px var(--ink);text-shadow:0 5px 0 var(--red-dk),0 0 24px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.2,1.6,.4,1) both;padding:0 12px}
 .banner small{display:block;font-weight:900;font-size:15px;color:var(--cream);text-shadow:0 2px 4px #000;margin-top:4px}
 @keyframes pop{from{transform:scale(2.2);opacity:0}to{transform:none;opacity:1}}
-#bDone{position:absolute;left:50%;transform:translateX(-50%);bottom:max(14px,calc(env(safe-area-inset-bottom) + 10px));width:min(240px,60vw);min-height:56px;z-index:5;touch-action:manipulation}
+#bDone{position:absolute;left:50%;transform:translateX(-50%);bottom:max(14px,calc(calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)) + 10px));width:min(240px,60vw);min-height:56px;z-index:5;touch-action:manipulation}
 #bDone:active{transform:translate(-50%,4px)}
 #bDone:disabled{filter:grayscale(.8) brightness(.7);cursor:default}
-.tut{position:absolute;left:50%;bottom:max(84px,calc(env(safe-area-inset-bottom) + 80px));transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;background:rgba(18,14,34,.85);padding:8px 14px;border-radius:99px;font-weight:900;font-size:14px;white-space:nowrap;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,246,216,.3)}
+.tut{position:absolute;left:50%;bottom:max(84px,calc(calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)) + 80px));transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;background:rgba(18,14,34,.85);padding:8px 14px;border-radius:99px;font-weight:900;font-size:14px;white-space:nowrap;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,246,216,.3)}
 .tut svg{width:28px;height:28px;flex:none;animation:trace 1.2s ease-in-out infinite alternate}
 @keyframes trace{from{transform:translate(-6px,4px)}to{transform:translate(6px,-4px)}}
 .pop{position:fixed;z-index:16;font-family:var(--disp);font-size:26px;color:#fff;-webkit-text-stroke:1.5px var(--ink);text-shadow:0 3px 0 var(--ink);transform:translate(-50%,-50%);animation:popUp .9s ease-out forwards;pointer-events:none;white-space:nowrap}
@@ -141,8 +141,8 @@ button{font-family:inherit;color:inherit;font-size:inherit}
 @media (min-aspect-ratio:1/1) and (max-height:560px){
   #bDone{left:auto;right:max(12px,env(safe-area-inset-right));transform:none;width:min(170px,24vw)}
   #bDone:active{transform:translateY(4px)}
-  .tut{left:auto;right:max(12px,env(safe-area-inset-right));transform:none;bottom:max(80px,calc(env(safe-area-inset-bottom) + 76px))}
-  .banner{left:max(8px,env(safe-area-inset-left));right:auto;width:min(21vw,200px);bottom:max(12px,env(safe-area-inset-bottom))}
+  .tut{left:auto;right:max(12px,env(safe-area-inset-right));transform:none;bottom:max(80px,calc(calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)) + 76px))}
+  .banner{left:max(8px,env(safe-area-inset-left));right:auto;width:min(21vw,200px);bottom:max(12px,calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)))}
   .banner b{font-size:clamp(20px,3.8vw,34px);padding:0}
   .order{max-width:min(220px,26vw);font-size:14px}
   .order.big{font-size:16px}
@@ -181,10 +181,11 @@ button{font-family:inherit;color:inherit;font-size:inherit}
 .rowSX .btn{padding:0 10px;gap:6px}
 @media (min-aspect-ratio:1/1) and (max-height:560px){.rowSX{flex-direction:column;gap:6px}.rowSX .btn{flex:none}}
 #bSave{font-size:16px;padding:0 10px}
-.skip{position:absolute;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));text-align:center;font-size:12px;font-weight:900;opacity:.75;pointer-events:none}
+.skip{position:absolute;left:0;right:0;bottom:max(10px,calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)));text-align:center;font-size:12px;font-weight:900;opacity:.75;pointer-events:none}
+@media (max-height:639px){html.inapp-x .grid{grid-template-columns:repeat(4,var(--ts,60px))}html.inapp-x .tile .cm{display:none}}
 @media (max-height:700px){.btn{min-height:46px;font-size:16px}.btn.red{min-height:50px;font-size:18px}.btn.ghost{min-height:40px;font-size:14px}.rank{min-height:70px}.stamp{width:68px;height:68px}.rankTxt .n{font-size:26px}}
 @media (min-aspect-ratio:1/1) and (max-height:560px){
-  #vResult{padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+  #vResult{padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(10px,calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px))) max(16px,env(safe-area-inset-left))}
   #vResult .wrap{width:100%;max-width:900px;display:grid;grid-template-columns:1fr minmax(220px,300px);grid-template-rows:auto minmax(0,1fr);gap:6px 18px;align-items:center}
   .rHead{grid-column:1;grid-row:1;justify-self:center}
   .rMain{grid-column:1;grid-row:2;height:100%}
@@ -306,7 +307,7 @@ body.gloom #shade{opacity:1}
 </script>
 <script src="data.js?v=3"></script>
 <script src="snd.js?v=3"></script>
-<script type="module" src="game.js?v=3"></script>
-<script src="support.js?v=4" data-ja="マヨネーズ" data-en="mayo"></script>
+<script type="module" src="game.js?v=4"></script>
+<script src="support.js?v=5" data-ja="マヨネーズ" data-en="mayo"></script>
 </body>
 </html>

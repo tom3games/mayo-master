@@ -671,7 +671,9 @@ function layoutResult() {
   const g = $('#grid'); if (!g) return; g.style.setProperty('--ts', '60px')
   requestAnimationFrame(() => {
     const W = g.clientWidth, H = g.clientHeight; if (!W || !H) return
-    const ts = Math.floor(clamp(Math.min((W - 30) / 2, (H - 8) / 2 - 38), 56, 230)); g.style.setProperty('--ts', ts + 'px')
+    // X のアプリの中で背の低い画面は、下の帯の分だけ狭いので4枚を横一列に並べる（index.html の同じ条件の CSS と対）
+    const row = document.documentElement.classList.contains('inapp-x') && innerHeight < 640
+    const ts = row ? Math.floor(clamp(Math.min((W - 30) / 4, H - 8), 48, 120)) : Math.floor(clamp(Math.min((W - 30) / 2, (H - 8) / 2 - 38), 56, 230)); g.style.setProperty('--ts', ts + 'px')
   })
 }
 function revealUpdate() {
